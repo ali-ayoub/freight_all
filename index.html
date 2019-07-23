@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' 
+    <title>Total Amount and Value of Freight</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        h2, h3 {
+            margin: 10px;
+            font-size: 1.2em;
+        }
+        h3 {
+            font-size: 1em;
+        }
+        p {
+            font-size: 0.85em;
+            margin: 10px;
+            text-align: left;
+        }
+        .map-overlay {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.8);
+            margin-right: 20px;
+            font-family: Lato, sans-serif;
+            overflow: auto;
+            border-radius: 3px;
+        }
+        #map {
+            position:absolute;
+            top:0;
+            bottom:0;
+            width:100%;
+        }
+        #features {
+            top: 0;
+            height: 260px;
+            margin-top: 20px;
+            width: 310px;
+        }
+        .legend {
+            background-color: #fff;
+            padding: 15px;
+            font: 15px 'Lato', sans-serif;
+            position: absolute;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.10);
+            line-height: 22px;
+            border-radius: 3px;
+            margin-bottom: 60px;
+            width: 150px;
+            bottom: 30px;
+            right: 10px;
+            z-index: 1;
+        }
+        .legend-key {
+            display:inline-block;
+            border-radius: 50%;
+            width: 10px;
+            height: 10px;
+            margin-right: 5px;
+        }
+        .legend div span {
+            border-radius: 50%;
+            display: inline-block;
+            height: 10px;
+            margin-right: 5px;
+            width: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id='map'></div>
+<div class='map-overlay' id='features'><h2>Total Amount and Value of Freight</h2><div id='pd'><p>Zoom in for more detailed data</p></div></div>
+<div class='map-overlay' id='legend'></div>
+
+<!-- <div id='state-legend' class='legend'>
+    <h4>Unemployment Rate (Census, 2016)</h4>
+    <div><span style='background-color: #2879b9'></span>15.1 - 17.5</div>
+    <div><span style='background-color: #3e8ec4'></span>10.1 - 15</div>
+    <div><span style='background-color: #57a0cf'></span>7.6 - 10</div>
+    <div><span style='background-color: #73b3d8'></span>5.1 - 7.5</div>
+    <div><span style='background-color: #94c5df'></span>2.9 - 5</div>
+    <div><span style='background-color: #b0d2e8'></span>0 - 2.8</div>
+</div>
+
+<div id='region-legend' class='legend' style='display: none;'>
+    <h4>Unemployment Rate (Census, 2016)</h4>
+    <div><span style='background-color: #08306b'></span>22.6 - 100</div>
+    <div><span style='background-color: #084b94'></span>20.1 - 22.5</div>
+    <div><span style='background-color: #1563aa'></span>17.6 - 20</div>
+    <div><span style='background-color: #2879b9'></span>15.1 - 17.5</div>
+    <div><span style='background-color: #3e8ec4'></span>12.6 - 15</div>
+    <div><span style='background-color: #57a0cf'></span>10.1 - 12.5</div>
+    <div><span style='background-color: #73b3d8'></span>7.6 - 10</div>
+    <div><span style='background-color: #94c5df'></span>5.1 - 7.5</div>
+    <div><span style='background-color: #b0d2e8'></span>0 - 5</div>
+</div>
+ -->
+<script>
+
+// define access token
+mapboxgl.accessToken = 'pk.eyJ1IjoiYWxpYXlvdWIiLCJhIjoiY2pmd3M4aHZoMXh0dDM0bzcxdGxubTM1byJ9.jFzaMKL7l6DTLK8oI4hRhA';
+
+// var zoomThreshold = 6;
+
+//create map
+var map = new mapboxgl.Map({
+    container: 'map', // container id
+    style: 'mapbox://styles/aliayoub/cjxpx23vf2nay1cn1x2x2keua' // map style URL from Mapbox Studio
+});
+
+// wait for map to load before adjusting it
+map.on('load', function() {
+
+    // make a pointer cursor
+    map.getCanvas().style.cursor = 'default';
+
+    // set map bounds to the continental US
+    map.fitBounds([[-133.2421875, 16.972741], [-47.63671875, 52.696361]]);
+
+    // make a pointer cursor
+    map.getCanvas().style.cursor = 'default';
+
+    // change info window on hover
+    map.on('mousemove', function (e) {
+        var region = map.queryRenderedFeatures(e.point, {
+            layers: ['faf-agg-97tejn']
+        });
+        var state = map.queryRenderedFeatures(e.point, {
+            layers: ['faf-st-agg-b6m0ou']
+        });
+
+        if (region.length > 0) {
+            document.getElementById('pd').innerHTML = "</h3><p>" + "<strong>Region: </strong>" + region[0].properties.name + "</h3><p>" + "<strong>Amount(thousand tons): </strong>" + region[0].properties.tons + "</h3><p>" + "<strong>Amount Growth(thousand tons): </strong>" + region[0].properties.tons_growt + "</h3><p>" + "<strong>Amount Growth(%): </strong>" + region[0].properties.tons_gro_1 + "</h3><p>" + "<strong>Value($million): </strong>" + region[0].properties.value + "</h3><p>" + "<strong>Value Growth($million): </strong>" + region[0].properties.value_grow + "</h3><p>" + "<strong>Value Growth(%): </strong>" + region[0].properties.value_gr_1;
+        } else if (state.length > 0) {
+            document.getElementById('pd').innerHTML = "</h3><p>" + "<strong>State: </strong>" + state[0].properties.name + "</h3><p>" + "<strong>Amount(thousand tons): </strong>" + state[0].properties.tons + "</h3><p>" + "<strong>Amount Growth(thousand tons): </strong>" + state[0].properties.tons_growt + "</h3><p>" + "<strong>Amount Growth(%): </strong>" + state[0].properties.tons_gro_1 + "</h3><p>" + "<strong>Value($million): </strong>" + state[0].properties.value + "</h3><p>" + "<strong>Value Growth($million): </strong>" + state[0].properties.value_grow + "</h3><p>" + "<strong>Value Growth(%): </strong>" + state[0].properties.value_gr_1;
+        } else {
+            document.getElementById('pd').innerHTML = '<p>Zoom in for more detailed data</p>';
+        }
+    });
+
+});
+
+// var stateLegendEl = document.getElementById('state-legend');
+// var regionLegendEl = document.getElementById('region-legend');
+// map.on('zoom', function() {
+//     if (map.getZoom() > zoomThreshold) {
+//         stateLegendEl.style.display = 'none';
+//         regionLegendEl.style.display = 'block';
+//     } else {
+//         stateLegendEl.style.display = 'block';
+//         regionLegendEl.style.display = 'none';
+//     }
+// });
+
+</script>
+
+</body>
+</html>
